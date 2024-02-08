@@ -1,92 +1,15 @@
-import os
-from typing import Optional, List
-
-from fastapi import FastAPI, Body, HTTPException, status
-from fastapi.responses import Response
-from pydantic import ConfigDict, BaseModel, Field, EmailStr
-from pydantic.functional_validators import BeforeValidator
-
-from typing_extensions import Annotated
-
+from fastapi import APIRouter, HTTPException, status, Body
+from models.StudentModel import StudentModel, StudentCollection
+from models.UpdateStudentModel import UpdateStudentModel
 from bson import ObjectId
-import motor.motor_asyncio
 from pymongo import ReturnDocument
-import key_param
+from fastapi.responses import Response
 
-app = FastAPI(
-    title="Student Course API",
-    summary="A sample application showing how to use FastAPI to add a ReST API to a MongoDB collection.",
-)
-client = motor.motor_asyncio.AsyncIOMotorClient(key_param.MONGO_URI)
-db = client.college
-student_collection = db.get_collection("students")
+from configs.db import student_collection
 
-# Represents an ObjectId field in the database.
-# It will be represented as a `str` on the model so that it can be serialized to JSON.
-PyObjectId = Annotated[str, BeforeValidator(str)]
+api_router = APIRouter()
 
-
-class StudentModel(BaseModel):
-    """
-    Container for a single student record.
-    """
-
-    # The primary key for the StudentModel, stored as a `str` on the instance.
-    # This will be aliased to `_id` when sent to MongoDB,
-    # but provided as `id` in the API requests and responses.
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    name: str = Field(...)
-    email: EmailStr = Field(...)
-    course: str = Field(...)
-    gpa: float = Field(..., le=4.0)
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-        json_schema_extra={
-            "example": {
-                "name": "Jane Doe",
-                "email": "jdoe@example.com",
-                "course": "Experiments, Science, and Fashion in Nanophotonics",
-                "gpa": 3.0,
-            }
-        },
-    )
-
-
-class UpdateStudentModel(BaseModel):
-    """
-    A set of optional updates to be made to a document in the database.
-    """
-
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    course: Optional[str] = None
-    gpa: Optional[float] = None
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str},
-        json_schema_extra={
-            "example": {
-                "name": "Jane Doe",
-                "email": "jdoe@example.com",
-                "course": "Experiments, Science, and Fashion in Nanophotonics",
-                "gpa": 3.0,
-            }
-        },
-    )
-
-
-class StudentCollection(BaseModel):
-    """
-    A container holding a list of `StudentModel` instances.
-
-    This exists because providing a top-level array in a JSON response can be a [vulnerability](https://haacked.com/archive/2009/06/25/json-hijacking.aspx/)
-    """
-
-    students: List[StudentModel]
-
-
-@app.post(
+@api_router.post(
     "/students/",
     response_description="Add new student",
     response_model=StudentModel,
@@ -108,7 +31,7 @@ async def create_student(student: StudentModel = Body(...)):
     return created_student
 
 
-@app.get(
+@api_router.get(
     "/students/",
     response_description="List all students",
     response_model=StudentCollection,
@@ -123,7 +46,7 @@ async def list_students():
     return StudentCollection(students=await student_collection.find().to_list(1000))
 
 
-@app.get(
+@api_router.get(
     "/students/{id}",
     response_description="Get a single student",
     response_model=StudentModel,
@@ -141,7 +64,7 @@ async def show_student(id: str):
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 
-@app.put(
+@api_router.put(
     "/students/{id}",
     response_description="Update a student",
     response_model=StudentModel,
@@ -176,7 +99,7 @@ async def update_student(id: str, student: UpdateStudentModel = Body(...)):
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 
-@app.delete("/students/{id}", response_description="Delete a student")
+@api_router.delete("/students/{id}", response_description="Delete a student")
 async def delete_student(id: str):
     """
     Remove a single student record from the database.
