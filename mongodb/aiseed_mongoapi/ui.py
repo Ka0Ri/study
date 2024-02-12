@@ -4,7 +4,7 @@ import requests
 
 def predict(item_id):
     # Call FastAPI endpoint to get item details from MongoDB
-    response = requests.get(f"http://127.0.0.1:8000/students/{item_id}")
+    response = requests.get(f"http://127.0.0.1:8001/students/{item_id}")
     if response.status_code == 200:
         item_data = response.json()
         return f"Item Name: {item_data['name']}\nDescription: {item_data['course']}"
