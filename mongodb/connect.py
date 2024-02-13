@@ -19,4 +19,3 @@ number_of_movies_with_korean = movies.count_documents({"languages": "Korean"})
 number_of_movies_with_english = movies.count_documents({"languages": "English"})
 print(number_of_movies_with_english,
         number_of_movies_with_korean)
-
