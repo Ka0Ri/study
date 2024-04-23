@@ -44,6 +44,7 @@ sampling_params = SamplingParams(temperature=0.6,
 
 def predict(message, history):
     history_chat_format = []
+    print(history)
     for human, assistant in history:
         history_chat_format.append({"role": "user", "content": human })
         history_chat_format.append({"role": "assistant", "content": assistant})
@@ -54,4 +55,4 @@ def predict(message, history):
     for chunk in llm.generate(prompt, sampling_params):
         yield chunk.outputs[0].text
 
-gr.ChatInterface(predict).launch()
+gr.ChatInterface(predict).launch(share=True)
