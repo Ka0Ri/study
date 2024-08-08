@@ -165,3 +165,8 @@ key_param.py
 LoRA/data/
 LoRA/logs/
 LoRA/aclImdb/
+*.png
+*.jpg
+*.txt
+*.mp4
+*.cache
