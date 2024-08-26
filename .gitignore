@@ -165,3 +165,7 @@ key_param.py
 LoRA/data/
 LoRA/logs/
 LoRA/aclImdb/
+
+*
+!*.py
+!*.ipynb
