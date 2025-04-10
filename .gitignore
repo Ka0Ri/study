@@ -161,12 +161,13 @@ cython_debug/
 
 # only remove  *.py or *.ipynb and include all other files
 
+# Ignore all other files
+*
+
 # Include only .py and .ipynb files
 !*.py
 !*.ipynb
 
-# Ignore all other files
-# Ignore all directories
-*
+
 
 
